@@ -58,7 +58,6 @@ func (m MovieModel) Get(id int64) (*Movie, error) {
 		&movie.Runtime,
 		pq.Array(&movie.Genres),
 		&movie.Version)
-
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -182,7 +181,6 @@ func (m MovieModel) GetAll(title string, genres []string, filters Filters) ([]*M
 			pq.Array(&movie.Genres),
 			&movie.Version,
 		)
-
 		if err != nil {
 			return nil, Metadata{}, err
 		}

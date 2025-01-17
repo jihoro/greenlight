@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/julienschmidt/httprouter"
-	"greenlight.jihoro.com/internal/validator"
 	"io"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	"github.com/julienschmidt/httprouter"
+	"greenlight.jihoro.com/internal/validator"
 )
 
 func (app *application) readIDParam(r *http.Request) (int64, error) {
@@ -50,7 +51,6 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 	dec := json.NewDecoder(r.Body)
 	dec.DisallowUnknownFields()
 	err := dec.Decode(dst)
-
 	if err != nil {
 		var syntaxError *json.SyntaxError
 		var unmarshalTypeError *json.UnmarshalTypeError
@@ -114,4 +114,21 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int, v *
 		return defaultValue
 	}
 	return i
+}
+
+func (app *application) background(fn func()) {
+	app.wg.Add(1)
+	// Launch a background goroutine.
+	go func() {
+		defer app.wg.Done()
+		// Recover any panic.
+		defer func() {
+			if err := recover(); err != nil {
+				app.logger.Error(fmt.Sprintf("%v", err))
+			}
+		}()
+
+		// Execute the arbitrary function that we passed as the parameter.
+		fn()
+	}()
 }
